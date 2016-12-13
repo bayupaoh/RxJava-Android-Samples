@@ -10,85 +10,75 @@ import io.reactivex.flowables.ConnectableFlowable;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-public class RotationPersist1WorkerFragment
-      extends Fragment {
+public class RotationPersist1WorkerFragment extends Fragment {
 
-    private IAmYourMaster _masterFrag;
-    private ConnectableFlowable<Integer> _storedIntsFlowable;
-    private Disposable _storedIntsDisposable;
+  private IAmYourMaster _masterFrag;
+  private ConnectableFlowable<Integer> _storedIntsFlowable;
+  private Disposable _storedIntsDisposable;
 
-    /**
-     * Hold a reference to the activity -> caller fragment
-     * this way when the worker frag kicks off
-     * we can talk back to the master and send results
-     */
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
+  /**
+   * Hold a reference to the activity -> caller fragment
+   * this way when the worker frag kicks off
+   * we can talk back to the master and send results
+   */
+  @Override public void onAttach(Context context) {
+    super.onAttach(context);
 
-        List<Fragment> frags = ((MainActivity) context)
-              .getSupportFragmentManager()
-              .getFragments();
-        for (Fragment f : frags) {
-            if (f instanceof IAmYourMaster) {
-                _masterFrag = (IAmYourMaster) f;
-            }
-        }
-
-        if (_masterFrag == null) {
-            throw new ClassCastException("We did not find a master who can understand us :(");
-        }
+    List<Fragment> frags = ((MainActivity) context).getSupportFragmentManager().getFragments();
+    for (Fragment f : frags) {
+      if (f instanceof IAmYourMaster) {
+        _masterFrag = (IAmYourMaster) f;
+      }
     }
 
-    /**
-     * This method will only be called once when the retained Fragment is first created.
-     */
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    if (_masterFrag == null) {
+      throw new ClassCastException("We did not find a master who can understand us :(");
+    }
+  }
 
-        // Retain this fragment across configuration changes.
-        setRetainInstance(true);
+  /**
+   * This method will only be called once when the retained Fragment is first created.
+   */
+  @Override public void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
 
-        if (_storedIntsFlowable != null) {
-            return;
-        }
+    // Retain this fragment across configuration changes.
+    setRetainInstance(true);
 
-        Flowable<Integer> intsObservable = Flowable
-              .interval(1, TimeUnit.SECONDS)
-              .map(Long::intValue)
-              .take(20);
-
-        _storedIntsFlowable = intsObservable.publish();
-        _storedIntsDisposable = _storedIntsFlowable.connect();
+    if (_storedIntsFlowable != null) {
+      return;
     }
 
-    /**
-     * The Worker fragment has started doing it's thing
-     */
-    @Override
-    public void onResume() {
-        super.onResume();
-        _masterFrag.observeResults(_storedIntsFlowable);
-    }
+    Flowable<Integer> intsObservable =
+        Flowable.interval(1, TimeUnit.SECONDS).map(Long::intValue).take(20);
 
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        _storedIntsDisposable.dispose();
-    }
+    _storedIntsFlowable = intsObservable.publish();
+    _storedIntsDisposable = _storedIntsFlowable.connect();
+  }
 
-    /**
-     * Set the callback to null so we don't accidentally leak the
-     * Activity instance.
-     */
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        _masterFrag = null;
-    }
+  /**
+   * The Worker fragment has started doing it's thing
+   */
+  @Override public void onResume() {
+    super.onResume();
+    _masterFrag.observeResults(_storedIntsFlowable);
+  }
 
-    public interface IAmYourMaster {
-        void observeResults(Flowable<Integer> intsObservable);
-    }
+  @Override public void onDestroy() {
+    super.onDestroy();
+    _storedIntsDisposable.dispose();
+  }
+
+  /**
+   * Set the callback to null so we don't accidentally leak the
+   * Activity instance.
+   */
+  @Override public void onDetach() {
+    super.onDetach();
+    _masterFrag = null;
+  }
+
+  public interface IAmYourMaster {
+    void observeResults(Flowable<Integer> intsObservable);
+  }
 }

@@ -10,18 +10,18 @@ import io.reactivex.Flowable;
  */
 public class RxBus {
 
-    private final Relay<Object, Object> _bus = PublishRelay.create().toSerialized();
+  private final Relay<Object, Object> _bus = PublishRelay.create().toSerialized();
 
-    public void send(Object o) {
-        _bus.call(o);
-    }
+  public void send(Object o) {
+    _bus.call(o);
+  }
 
-    public Flowable<Object> asFlowable() {
-        // this won't be necessary after https://github.com/JakeWharton/RxRelay/pull/20 is complete
-        return RxJavaInterop.toV2Flowable(_bus.asObservable());
-    }
+  public Flowable<Object> asFlowable() {
+    // this won't be necessary after https://github.com/JakeWharton/RxRelay/pull/20 is complete
+    return RxJavaInterop.toV2Flowable(_bus.asObservable());
+  }
 
-    public boolean hasObservers() {
-        return _bus.hasObservers();
-    }
+  public boolean hasObservers() {
+    return _bus.hasObservers();
+  }
 }
